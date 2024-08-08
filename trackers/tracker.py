@@ -2,7 +2,9 @@ import os
 import pickle
 
 import cv2
+import numpy as np
 import supervision as sv
+from sklearn.cluster import KMeans
 from ultralytics import YOLO
 
 from utils import get_bbox_width, get_center_of_bbox
@@ -20,7 +22,7 @@ class Tracker:
             batch_detections = self.model.predict(frames[i : i + batch_size], conf=0.1)
             detections += batch_detections
 
-        return detections
+        return detections  # List[dict] {'boxes': [[],[],[]], 'conf': [], 'cls_names': [0,0,0,2,2,1,1,1,1]}
 
     def get_object_tracks(self, frames, read_from_stub=False, stub_path=None):
 
@@ -84,11 +86,22 @@ class Tracker:
 
         return tracks
 
-    def draw_ellipse(self, frame, bbox, color, track_id):
+    def draw_triangel(self, frame, bbox, color):
+        y = int(bbox[1])
+        x, _ = get_center_of_bbox(bbox=bbox)
+
+        traiangel_points = np.array([[x, y], [x - 10, y - 20], [x + 10, y - 20]])
+        cv2.drawContours(frame, [traiangel_points], 0, color, cv2.FILLED)
+        cv2.drawContours(frame, [traiangel_points], 0, (0, 0, 0), 2)
+
+        return frame
+
+    def draw_ellipse(self, frame, bbox, color, track_id=None):
         y2 = int(bbox[3])  # want to place ellipse at the bottom
         x_center, _ = get_center_of_bbox(bbox)
         width = get_bbox_width(bbox)
 
+        # Draw ellipse
         cv2.ellipse(
             frame,
             center=(x_center, y2),
@@ -101,9 +114,38 @@ class Tracker:
             lineType=cv2.LINE_4,
         )
 
+        # Draw Rectangel
+        rectangle_width = 40
+        rectangle_height = 20
+        rectangle_x1 = x_center - rectangle_width // 2
+        rectangle_x2 = x_center + rectangle_width // 2
+        rectangle_y1 = (y2 - rectangle_height // 2) + 15
+        rectangle_y2 = (y2 + rectangle_height // 2) + 15
+        if track_id is not None:
+            cv2.rectangle(
+                frame,
+                pt1=(rectangle_x1, rectangle_y1),
+                pt2=(rectangle_x2, rectangle_y2),
+                color=color,
+                thickness=cv2.FILLED,
+            )
+            text_x1 = rectangle_x1 + 12
+            if track_id > 99:
+                text_x1 -= 10
+
+            cv2.putText(
+                frame,
+                str(track_id),
+                (text_x1, rectangle_y1 + 15),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.6,
+                (0, 0, 0),  # Black
+                2,
+            )
+
         return frame
 
-    def draw_annotations(self, video_frames, tracks):
+    def draw_annotations(self, video_frames, tracks=None):
         output_video_frames = []
 
         for frame_num, frame in enumerate(video_frames):
@@ -115,7 +157,14 @@ class Tracker:
 
             # Draw players
             for track_id, player in player_dict.items():
-                frame = self.draw_ellipse(frame, player["bbox"], (0, 0, 255), track_id)
+                color = player.get("color", (0, 0, 225))
+                frame = self.draw_ellipse(frame, player["bbox"], color, track_id)
+            # Draw Referees
+            for _, referee in referee_dict.items():
+                frame = self.draw_ellipse(frame, referee["bbox"], (0, 255, 255))
+            # Draw ball
+            for _, ball in ball_dict.items():
+                frame = self.draw_triangel(frame, ball["bbox"], (0, 255, 0))  # b.g.r
 
             output_video_frames.append(frame)
         return output_video_frames
