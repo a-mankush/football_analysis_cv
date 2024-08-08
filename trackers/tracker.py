@@ -3,6 +3,7 @@ import pickle
 
 import cv2
 import numpy as np
+import pandas as pd
 import supervision as sv
 from sklearn.cluster import KMeans
 from ultralytics import YOLO
@@ -168,3 +169,16 @@ class Tracker:
 
             output_video_frames.append(frame)
         return output_video_frames
+
+    def interpolate_ball_positions(self, ball_positionss):
+        ball_positionss = [
+            frame.get(1, {}).get("bbox", []) for frame in ball_positionss
+        ]
+        df_ball_positions = pd.DataFrame(
+            ball_positionss, columns=["x1", "y1", "x2", "y2"]
+        )
+
+        df_ball_positions = df_ball_positions.interpolate()
+        df_ball_positions = df_ball_positions.bfill()
+
+        return [{1: {"bbox": x}} for x in df_ball_positions.to_numpy().tolist()]

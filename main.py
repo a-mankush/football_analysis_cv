@@ -17,6 +17,9 @@ def main():
         frames=video_frames, read_from_stub=True, stub_path="stubs/track_stubs.pkl"
     )
 
+    # Interpolate ball positions
+    tracks["ball"] = tracker.interpolate_ball_positions(tracks["ball"])
+
     # Initialize the team assignier
     print("assigning teams")
     team_assignier = TeamAssiginer()
@@ -41,7 +44,9 @@ def main():
     output_video_frames = tracker.draw_annotations(video_frames, tracks)
 
     # Save video
-    save_video(output_video_frames, "output_videos/output_video_2.mp4")
+    save_video(
+        output_video_frames, "output_videos/output_video_ball_interpolation_1.mp4"
+    )
 
 
 if __name__ == "__main__":
