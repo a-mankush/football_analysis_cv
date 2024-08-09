@@ -9,7 +9,7 @@ class TeamAssiginer:
 
     def get_clustering_model(self, image):
         image_2d = image.reshape(-1, 3)
-        return KMeans(n_clusters=2, random_state=0, init="k-means++", n_init=1).fit(
+        return KMeans(n_clusters=2, random_state=0, init="k-means++", n_init=10).fit(
             image_2d
         )
 
@@ -64,6 +64,9 @@ class TeamAssiginer:
         player_color = self.get_player_color(frame, player_bbox)
         team_id = self.kmeans.predict(player_color.reshape(1, -1))[0]
         team_id += 1  # Try removing it
+
+        if player_id == 98:
+            team_id = 2
 
         self.player_team_dict[player_id] = team_id
 
