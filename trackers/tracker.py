@@ -175,7 +175,7 @@ class Tracker:
         )
         cv2.putText(
             frame,
-            f"Team 1 Ball Control: {team_2*100:.2f}%",
+            f"Team  Ball Control: {team_2*100:.2f}%",
             (1400, 950),
             cv2.FONT_HERSHEY_SIMPLEX,
             1,
@@ -185,7 +185,36 @@ class Tracker:
 
         return frame
 
-    def draw_annotations(self, video_frames, team_ball_control, tracks):
+    def draw_camera_movement(self, frame, frame_num, camera_movement):
+
+        overlay = frame.copy()
+        cv2.rectangle(overlay, (0, 0), (500, 100), (255, 255, 255), -1)
+        alpha = 0.6
+        cv2.addWeighted(overlay, alpha, frame, 1 - alpha, 0, frame)
+
+        cv2.putText(
+            frame,
+            f"Camara Movement X: {camera_movement[frame_num][0]:.2f}",
+            (10, 30),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            1,
+            (0, 0, 0),  # color
+            3,  # thickness
+        )
+        cv2.putText(
+            frame,
+            f"Camara Movement Y: {camera_movement[frame_num][1]:.2f}",
+            (10, 60),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            1,
+            (0, 0, 0),  # color
+            3,  # thickness
+        )
+        return frame
+
+    def draw_annotations(
+        self, video_frames, team_ball_control, tracks, camera_movement
+    ):
         output_video_frames = []
 
         for frame_num, frame in enumerate(video_frames):
@@ -210,6 +239,9 @@ class Tracker:
 
             # Draw team ball control
             frame = self.draw_team_ball_control(frame, frame_num, team_ball_control)
+
+            # Draw camera movement
+            frame = self.draw_camera_movement(frame, frame_num, camera_movement)
 
             output_video_frames.append(frame)
         return output_video_frames
