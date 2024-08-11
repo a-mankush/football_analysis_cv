@@ -52,6 +52,20 @@ class CameraMovementEstimator:
             ),  # Termination criteria for Lucas-Kanade optical flow.
         )
 
+    def adjust_positions_to_tracks(self, tracks, camera_movement_per_frame):
+        for objects, object_track in tracks.items():
+            for frame_num, track in enumerate(object_track):
+                for track_id, track_info in track.items():
+                    position = track_info["position"]
+                    camera_movement = camera_movement_per_frame[frame_num]
+                    adjusted_position = [
+                        position[0] - camera_movement[0],
+                        position[1] - camera_movement[1],
+                    ]
+                    tracks[objects][frame_num][track_id][
+                        "adjusted_position"
+                    ] = adjusted_position
+
     def get_camera_movement(self, frames, read_from_stub=False, stub_path=None):
         # If we should read from a stub file and the stub path is provided and the file exists,
         # then read the camera movement from the stub file and return it.
@@ -120,34 +134,3 @@ class CameraMovementEstimator:
 
         # Return the camera movement for each frame.
         return camera_movement
-
-    def draw_camera_movement(self, frames, camera_movement):
-        output_frames = []
-        for fram_num, frame in enumerate(frames):
-            frame = frame.copy()
-            overlay = frame.copy()
-            cv2.rectangle(overlay, (0, 0), (500, 100), (255, 255, 255), -1)
-            alpha = 0.6
-            cv2.addWeighted(overlay, alpha, frame, 1 - alpha, 0, frame)
-
-            cv2.putText(
-                frame,
-                f"Camara Movement X: {camera_movement[fram_num][0]*100:.2f}",
-                (10, 30),
-                cv2.FONT_HERSHEY_SIMPLEX,
-                1,
-                (0, 0, 0),  # color
-                3,  # thickness
-            )
-            cv2.putText(
-                frame,
-                f"Camara Movement Y: {camera_movement[fram_num][1]*100:.2f}",
-                (10, 60),
-                cv2.FONT_HERSHEY_SIMPLEX,
-                1,
-                (0, 0, 0),  # color
-                3,  # thickness
-            )
-            output_frames.append(frame)
-
-        return output_frames
