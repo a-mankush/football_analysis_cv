@@ -6,20 +6,20 @@ class ViewTransformer:
     def __init__(self) -> None:
         # The width of the tennis court in pixels
         court_width = 68
-        court_lenght = 23.32  # 5.83 * 4
+        court_length = 23.32  # 5.83 * 4
 
         # Define the vertices of the image pixels that correspond to the corners of the field
         # The vertices are represented as a list of tuples, where each tuple contains the x and y coordinates
         # of a vertex in pixels
         self.pixel_vertices = np.array(
-            [[110, 1035], [265, 275], [910, 250], [1640, 915]]
+            [[110, 1035], [265, 275], [910, 260], [1640, 915]]
         ).astype(np.float32)
 
         # Define the vertices of the target perspective, which is the field in a rectangular shape
         # The vertices are represented as a list of tuples, where each tuple contains the x and y coordinates
         # of a vertex in meters
         self.target_vertices = np.array(
-            [[0, court_lenght], [0, 0], [court_lenght, 0], [court_lenght, court_width]]
+            [[0, court_length], [0, 0], [court_length, 0], [court_length, court_width]]
         ).astype(np.float32)
 
         # Calculate the perspective transformation matrix using the pixel vertices and target vertices
@@ -31,11 +31,11 @@ class ViewTransformer:
     def transform_point(self, point):
         # Convert the point to an integer tuple, since OpenCV functions expect integer values
         # for pixel coordinates
-        pixel_point = (int(point[0]), int(point[1]))
+        p = (int(point[0]), int(point[1]))
 
         # Check if the point is inside the target vertices
         # cv2.pointPolygonTest returns a non-negative value if the point is inside the polygon
-        is_inside = cv2.pointPolygonTest(self.target_vertices, pixel_point, False) >= 0
+        is_inside = cv2.pointPolygonTest(self.pixel_vertices, p, False) >= 0
 
         # If the point is not inside the target vertices, return None
         if not is_inside:
@@ -79,6 +79,6 @@ class ViewTransformer:
 
                         # Add the transformed position to the track dictionary under the
                         # key "transformed_position"
-                        tracks[objects][frame_num][track_id][
-                            "transformed_position"
-                        ] = transformer_position
+                    tracks[objects][frame_num][track_id][
+                        "transformed_position"
+                    ] = transformer_position

@@ -1,8 +1,11 @@
+import pickle
+
 import cv2
 import numpy as np
 
 from camera_movement_estimator import CameraMovementEstimator
 from player_ball_assigner import PlayerBallAssiginer
+from speed_and_distance_estimator import SpeedAndDistanceEstimator
 from team_assignier import TeamAssiginer
 from trackers import Tracker
 from utils import read_video, save_video
@@ -25,6 +28,7 @@ def main():
     tracker.add_position_to_tracks(tracks)
 
     # camara movement estimator
+    print("estimating camera movement")
     cm_estimator = CameraMovementEstimator(frame=video_frames[0])
     camara_movement_per_frame = cm_estimator.get_camera_movement(
         video_frames, True, "stubs/camera_movement.pkl"
@@ -33,10 +37,18 @@ def main():
     cm_estimator.adjust_positions_to_tracks(tracks, camara_movement_per_frame)
 
     # View transformer
+    print("transforming view")
     vt = ViewTransformer()
     vt.add_transformed_position_to_tracks(tracks)
+
     # Interpolate ball positions
     tracks["ball"] = tracker.interpolate_ball_positions(tracks["ball"])
+
+    # Speed and distance estimator
+    print("estimating speed and distance")
+
+    speed_distance_estimator = SpeedAndDistanceEstimator()
+    speed_distance_estimator.add_speed_and_distance_to_tracks(tracks)
 
     # Initialize the team assignier
     print("assigning teams")
@@ -74,14 +86,23 @@ def main():
             team_ball_control.append(team_ball_control[-1])
     team_ball_control = np.array(team_ball_control)
 
+    with open("stubs/complete_tracks.pkl", "wb") as f:
+        pickle.dump(tracks, f)
+
     # Draw annotations
     print("drawing annotations")
     output_video_frames = tracker.draw_annotations(
         video_frames, team_ball_control, tracks, camara_movement_per_frame
     )
 
+    # Draw speed and distance
+    print("drawing speed and distance")
+    output_video_frames = speed_distance_estimator.draw_speed_and_distance(
+        output_video_frames, tracks
+    )
+
     # Save video
-    save_video(output_video_frames, "output_videos/output_video_camera_movment.mp4")
+    save_video(output_video_frames, "output_videos/output_video_final.mp4")
 
 
 if __name__ == "__main__":
