@@ -6,6 +6,7 @@ yolov8n.pt
 runs
 input_videos
 .vscode
+stubs
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
