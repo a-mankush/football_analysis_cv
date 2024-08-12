@@ -3,6 +3,9 @@ training/football-players-detection-1
 models
 output_videos
 yolov8n.pt
+runs
+input_videos
+.vscode
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
