@@ -2,6 +2,8 @@ cv_env
 training/football-players-detection-1
 models
 output_videos
+yolov8n.pt
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
