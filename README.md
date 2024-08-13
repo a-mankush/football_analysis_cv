@@ -2,8 +2,9 @@
 
 This project uses computer vision techniques to analyze a football match and extract relevant information such as player and ball tracking, team assignment, speed and distance estimation, ball acquisition and camera movement estimation.
 
-![[input_videos\Untitled video - Made with Clipchamp.gif]]
-![[input_videos\Untitled video - Made with Clipchamp (1).gif]]
+<img src="https://github.com/a-mankush/football_analysis_cv/blob/main/sample_gifs/Untitled%20video%20-%20Made%20with%20Clipchamp.gif?raw=true">
+
+<img src="https://github.com/a-mankush/football_analysis_cv/blob/main/sample_gifs/Untitled%20video%20-%20Made%20with%20Clipchamp%20(1).gif?raw=true">
 
 ## Features
 
